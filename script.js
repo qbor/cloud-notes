@@ -5,8 +5,8 @@ var LS_MESSAGES='cloud_notes.messages';
 var LS_CONFIG='cloud_notes.config';
 var LS_KEYS='cloud_notes.keys';
 var SITE_CONFIG={
-  supabaseUrl:'',       
-  supabaseAnonKey:''    
+  supabaseUrl:'https://gbredjjrpdcazcrlvniz.supabase.co',       
+  supabaseAnonKey:'sb_publishable_QT0HsneR-K_OcN2fEiIUTQ_G-FODobx'    
 };
 var state={
   notes:[],

@@ -5,8 +5,8 @@ var LS_MESSAGES='cloud_notes.messages';
 var LS_CONFIG='cloud_notes.config';
 var LS_KEYS='cloud_notes.keys';
 var SITE_CONFIG={
-  supabaseUrl:'https://gbredjjrpdcazcrlvniz.supabase.co',       
-  supabaseAnonKey:'sb_publishable_QT0HsneR-K_OcN2fEiIUTQ_G-FODobx'    
+  supabaseUrl:'',       
+  supabaseAnonKey:''    
 };
 var state={
   notes:[],
@@ -401,7 +401,7 @@ function parseHash(){
   var h=location.hash.replace(/^#\/?/,'')||'notes';
   var parts=h.split('/');
   if(parts[0]==='note'&&parts[1]) return {name:'note',id:parts[1]};
-  if(['notes','gallery','messages','settings'].indexOf(parts[0])>=0) return {name:parts[0]};
+  if(['notes','gallery','messages','settings','auth'].indexOf(parts[0])>=0) return {name:parts[0]};
   return {name:'notes'};
 }
 function navigate(hash){location.hash=hash;}

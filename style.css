@@ -1,6 +1,3 @@
-/* 云上笔记 Cloud Notes · 样式表
-   v4.0 · 2026-09 · 暗色模式 + 安全头版本 */
-/* ===== 设计变量 ===== */
 :root{
   --bg:#FAFAF8;
   --bg-side:#F1F0EC;
@@ -49,9 +46,6 @@ input,textarea{font-family:inherit;color:inherit}
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-
-
-/* ===== 暗色模式（script.js 设置 data-theme 后生效） ===== */
 :root[data-theme="dark"]{
   --bg:#15171C;
   --bg-side:#1B1E25;
@@ -76,11 +70,7 @@ a:hover{text-decoration:underline}
   --toast-bg:#2A2F38;
   --toast-text:#F2F4F7;
 }
-
-/* ===== 应用骨架 ===== */
 .app{display:flex;min-height:100vh}
-
-/* ===== 侧栏 ===== */
 .sidebar{
   width:var(--sidebar-w);
   flex-shrink:0;
@@ -134,8 +124,6 @@ a:hover{text-decoration:underline}
 .conn-dot.local{background:#E8A33D;box-shadow:0 0 0 3px rgba(232,163,61,.15)}
 .conn-state b{font-weight:600;color:var(--text)}
 .conn-sub{font-size:11px;color:var(--text-3);margin-left:16px}
-
-/* ===== 主区 ===== */
 .main{
   flex:1;
   margin-left:var(--sidebar-w);
@@ -161,13 +149,9 @@ a:hover{text-decoration:underline}
 .mobile-bar .brand-name{font-size:16px}
 .mobile-bar .brand-mark{width:30px;height:30px;border-radius:8px}
 .scrim{display:none;position:fixed;inset:0;background:var(--scrim);z-index:35}
-
-/* ===== 视图容器 ===== */
 .view{display:none;flex:1;min-height:0}
 .view.active{display:flex;flex-direction:column}
 .view-pad{max-width:1080px;width:100%;margin:0 auto;padding:28px 32px 64px}
-
-/* ===== 页头 ===== */
 .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px}
 .page-title{font-size:26px;font-weight:700;letter-spacing:-.01em}
 .page-desc{font-size:13.5px;color:var(--text-2);margin-top:4px}
@@ -182,8 +166,6 @@ a:hover{text-decoration:underline}
 .search-box svg{flex-shrink:0;color:var(--text-3)}
 .search-box input{border:none;outline:none;background:none;width:100%;font-size:14px}
 .search-box input::placeholder{color:var(--text-3)}
-
-/* ===== 笔记列表 ===== */
 .note-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
 .note-card{
   background:var(--card);
@@ -235,8 +217,6 @@ a:hover{text-decoration:underline}
   transition:background .15s ease;
 }
 .btn-danger:hover{background:#C93A40}
-
-/* ===== 编辑器 ===== */
 .editor-top{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
   margin-bottom:18px;
@@ -314,8 +294,6 @@ a:hover{text-decoration:underline}
 }
 .editor-preview.hidden{display:none}
 .editor-textarea.hidden{display:none}
-
-/* ===== Markdown 渲染 ===== */
 .md-body h1,.md-body h2,.md-body h3,.md-body h4{
   font-weight:700;line-height:1.4;margin:1.2em 0 .5em;letter-spacing:-.01em;
 }
@@ -349,8 +327,6 @@ a:hover{text-decoration:underline}
 .md-body hr{border:none;border-top:1px solid var(--border);margin:1.4em 0}
 .md-body img{max-width:100%;border-radius:var(--radius-sm);margin:.6em 0;display:block;cursor:zoom-in}
 .md-body a{word-break:break-all}
-
-/* ===== 图片墙 ===== */
 .gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
 .gallery-item{
   position:relative;border-radius:var(--radius);overflow:hidden;
@@ -368,8 +344,6 @@ a:hover{text-decoration:underline}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .gallery-empty{text-align:center;padding:80px 20px;border:1px dashed var(--border-strong);border-radius:var(--radius);background:var(--card);color:var(--text-2);font-size:14px}
-
-/* ===== 留言板 ===== */
 .msg-layout{display:grid;grid-template-columns:380px 1fr;gap:28px;align-items:start}
 .msg-form-card{
   background:var(--card);border:1px solid var(--border);
@@ -399,8 +373,6 @@ a:hover{text-decoration:underline}
 .msg-time{font-size:12px;color:var(--text-3)}
 .msg-content{font-size:14px;color:var(--text);white-space:pre-wrap;overflow-wrap:break-word}
 .msg-empty{text-align:center;padding:60px 20px;border:1px dashed var(--border-strong);border-radius:var(--radius);background:var(--card);color:var(--text-2);font-size:14px}
-
-/* ===== 设置页 ===== */
 .settings-wrap{max-width:640px}
 .set-card{
   background:var(--card);border:1px solid var(--border);
@@ -426,8 +398,6 @@ a:hover{text-decoration:underline}
 }
 .set-actions{display:flex;gap:10px;align-items:center;margin-top:4px;flex-wrap:wrap}
 .set-note{font-size:12.5px;color:var(--text-3);line-height:1.6;margin-top:14px}
-
-/* ===== 用户区（侧栏底部） ===== */
 .user-area{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
 .user-box{display:flex;align-items:center;gap:10px}
 .user-avatar{
@@ -454,8 +424,6 @@ a:hover{text-decoration:underline}
   transition:background .12s ease;
 }
 .auth-cta:hover{background:var(--accent-soft)}
-
-/* ===== 登录 / 注册页 ===== */
 .auth-wrap{display:flex;justify-content:center;padding-top:44px}
 .auth-card{
   width:100%;max-width:430px;
@@ -497,8 +465,6 @@ a:hover{text-decoration:underline}
 .auth-forgot-row{display:flex;justify-content:center;margin-top:10px}
 .link-btn{color:var(--accent);font-size:13px;padding:4px 8px;border-radius:6px}
 .link-btn:hover{text-decoration:underline;background:var(--accent-soft)}
-
-/* ===== 分类 / 标签 ===== */
 .note-meta-edit{
   display:flex;gap:10px;padding:12px 0;
   border-bottom:1px solid var(--border);margin-bottom:2px;flex-wrap:wrap;
@@ -522,8 +488,6 @@ a:hover{text-decoration:underline}
 .note-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
 .badge-cat{font-size:11px;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:99px;font-weight:600}
 .badge-tag{font-size:11px;color:var(--text-2);background:var(--bg-side);padding:2px 8px;border-radius:99px}
-
-/* ===== Toast ===== */
 .toast-wrap{
   position:fixed;right:20px;bottom:20px;z-index:90;
   display:flex;flex-direction:column;gap:10px;align-items:flex-end;
@@ -541,8 +505,6 @@ a:hover{text-decoration:underline}
 .toast.error{background:#3B2224;color:#FFC9CB}
 .toast.info{background:#22304A;color:#CFE0FF}
 @keyframes toast-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-
-/* ===== Modal ===== */
 .modal-scrim{
   display:none;position:fixed;inset:0;z-index:80;
   background:var(--scrim-strong);
@@ -560,8 +522,6 @@ a:hover{text-decoration:underline}
 .modal-title{font-size:17px;font-weight:700;margin-bottom:8px}
 .modal-desc{font-size:13.5px;color:var(--text-2);margin-bottom:20px;line-height:1.6}
 .modal-actions{display:flex;justify-content:flex-end;gap:10px}
-
-/* ===== Lightbox ===== */
 .lightbox{
   display:none;position:fixed;inset:0;z-index:85;
   background:rgba(15,17,21,.88);
@@ -570,8 +530,6 @@ a:hover{text-decoration:underline}
 }
 .lightbox.open{display:flex}
 .lightbox img{max-width:100%;max-height:92vh;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-
-/* ===== 移动端 ===== */
 @media (max-width:768px){
   .sidebar{transform:translateX(-100%);box-shadow:none}
   .sidebar.open{transform:translateX(0);box-shadow:0 0 40px rgba(20,24,32,.2)}
@@ -596,8 +554,6 @@ a:hover{text-decoration:underline}
 @media (max-width:480px){
   .note-grid{grid-template-columns:1fr}
 }
-
-/* ===== 主题切换按钮 ===== */
 .theme-toggle{
   display:flex;align-items:center;gap:9px;
   width:100%;height:38px;padding:0 12px;margin-bottom:10px;

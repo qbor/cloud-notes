@@ -6,8 +6,7 @@
 <title>云上笔记 · 把想法安放在云端</title>
 <meta name="description" content="云上笔记 —— 一个简洁、实时的云端笔记工具。支持 Markdown、图片、留言板、邮箱/手机号注册登录，可连接 Supabase 实现多端实时同步。">
 <meta name="theme-color" content="#FAFAF8">
-<!-- ===== 安全头（浏览器本地即生效，不影响功能） ===== -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://miaoda.feishu.cn; font-src https://miaoda.feishu.cn; img-src 'self' data: blob: https:; connect-src 'self' https: wss:; base-uri 'self'; form-action 'self'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://miaoda.feishu.cn; font-src https://miaoda.feishu.cn data:; img-src 'self' data: blob: https:; connect-src 'self' https: wss:; base-uri 'self'; form-action 'self'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="permissions-policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
 <link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@600;900&display=swap">
@@ -17,8 +16,6 @@
 </head>
 <body>
 <div class="app">
-
-  <!-- ===== 侧栏 ===== -->
   <aside class="sidebar" id="sidebar">
     <div class="brand">
       <div class="brand-mark" aria-hidden="true">
@@ -46,10 +43,6 @@
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         留言板
       </button>
-      <button class="nav-item" data-route="settings">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.09a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
-        连接设置
-      </button>
     </nav>
           <button class="theme-toggle" id="themeToggle" aria-label="切换深色/浅色模式">
         <svg id="themeIconMoon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -68,8 +61,6 @@
     </div>
   </aside>
   <div class="scrim" id="scrim"></div>
-
-  <!-- ===== 主区 ===== -->
   <div class="main">
     <div class="mobile-bar">
       <button class="icon-btn" id="btnMenu" aria-label="打开菜单">
@@ -80,8 +71,6 @@
       </div>
       <span class="brand-name">云上笔记</span>
     </div>
-
-    <!-- ===== 视图：笔记列表 ===== -->
     <section class="view" data-view="notes">
       <div class="view-pad">
         <div class="page-head">
@@ -98,8 +87,6 @@
         <div class="note-grid" id="notesGrid"></div>
       </div>
     </section>
-
-    <!-- ===== 视图：编辑器 ===== -->
     <section class="view" data-view="note">
       <div class="view-pad" style="max-width:960px">
         <div class="editor-top">
@@ -143,8 +130,6 @@
         </div>
       </div>
     </section>
-
-    <!-- ===== 视图：图片墙 ===== -->
     <section class="view" data-view="gallery">
       <div class="view-pad">
         <div class="page-head">
@@ -156,8 +141,6 @@
         <div class="gallery-grid" id="galleryGrid"></div>
       </div>
     </section>
-
-    <!-- ===== 视图：留言板 ===== -->
     <section class="view" data-view="messages">
       <div class="view-pad" style="max-width:1080px">
         <div class="page-head">
@@ -192,8 +175,6 @@
         </div>
       </div>
     </section>
-
-    <!-- ===== 视图：连接设置 ===== -->
     <section class="view" data-view="settings">
       <div class="view-pad settings-wrap">
         <div class="page-head">
@@ -241,8 +222,6 @@
         </div>
       </div>
     </section>
-
-    <!-- ===== 视图：登录 / 注册 ===== -->
     <section class="view" data-view="auth">
       <div class="view-pad auth-wrap">
         <div class="auth-card">
@@ -257,8 +236,6 @@
             <button class="auth-tab active" id="authTabLogin">登录</button>
             <button class="auth-tab" id="authTabRegister">注册</button>
           </div>
-
-          <!-- 登录面板 -->
           <div id="loginPanel">
             <div class="auth-method">
               <button class="method-btn active" data-method="password" id="lmPassword">邮箱密码</button>
@@ -286,8 +263,6 @@
               </div>
             </form>
           </div>
-
-          <!-- 忘记密码面板 -->
           <div id="forgotPanel" style="display:none">
             <div class="auth-sub" style="margin-bottom:18px">输入注册邮箱，我们将发送一封密码重置邮件</div>
             <form id="forgotForm" novalidate>
@@ -299,8 +274,6 @@
               <button type="button" class="btn-ghost" id="btnBackLogin" style="width:100%;justify-content:center;height:40px;margin-top:10px">返回登录</button>
             </form>
           </div>
-
-          <!-- 重置密码面板 -->
           <div id="resetPanel" style="display:none">
             <div class="auth-sub" style="margin-bottom:18px">已通过邮件验证身份，请设置一个新密码</div>
             <form id="resetForm" novalidate>
@@ -313,8 +286,6 @@
               <button type="submit" class="btn-primary auth-submit" id="resetSubmitBtn">更新密码</button>
             </form>
           </div>
-
-          <!-- 注册面板 -->
           <div id="registerPanel" style="display:none">
             <div class="auth-method">
               <button class="method-btn active" data-method="email" id="rmEmail">邮箱注册</button>
@@ -349,11 +320,7 @@
     </section>
   </div>
 </div>
-
-<!-- ===== Toast ===== -->
 <div class="toast-wrap" id="toastWrap"></div>
-
-<!-- ===== Modal（删除确认） ===== -->
 <div class="modal-scrim" id="modalScrim">
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <h2 class="modal-title" id="modalTitle">删除这篇笔记？</h2>
@@ -364,8 +331,6 @@
     </div>
   </div>
 </div>
-
-<!-- ===== Lightbox ===== -->
 <div class="lightbox" id="lightbox"><img id="lightboxImg" alt="图片预览"></div>
 </body>
 </html>

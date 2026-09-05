@@ -1,33 +1,14 @@
-/* 云上笔记 Cloud Notes · 逻辑脚本
-   v4.0 · 2026-09 · 暗色模式 + 安全头版本 */
 (function(){
 'use strict';
-
-/* ===== 常量 ===== */
 var LS_NOTES='cloud_notes.notes';
 var LS_MESSAGES='cloud_notes.messages';
 var LS_CONFIG='cloud_notes.config';
 var LS_KEYS='cloud_notes.keys';
-
-/* ============================================================
-   站长配置区（部署前必填）
-   ------------------------------------------------------------
-   把你的 Supabase 项目信息填到下面两行。
-   填好后，网站打开会自动连接，普通用户不需要也看不到
-   任何配置界面。
-   
-   获取方式：Supabase 控制台 → 你的项目 → 
-   Project Settings → API → 复制 Project URL 和 anon public key
-   
-   注意：anon key 本来就是设计为公开的，放前端是安全的，
-   真正的数据保护靠数据库的 RLS 行级安全策略（已配置）。
-   ============================================================ */
 var SITE_CONFIG={
-  supabaseUrl:'',       // 例如：'https://abcdefgh.supabase.co'
-  supabaseAnonKey:''    // 例如：'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+  supabaseUrl:'https://gbredjjrpdcazcrlvniz.supabase.co',      
+  supabaseAnonKey:'sb_publishable_QT0HsneR-K_OcN2fEiIUTQ_G-FODobx'    
 };
 
-/* ===== 状态 ===== */
 var state={
   notes:[],
   messages:[],
@@ -516,9 +497,6 @@ document.querySelectorAll('.nav-item').forEach(function(b){
     navigate('#/'+b.getAttribute('data-route'));
   });
 });
-/* 站长预配置模式：底部状态区仅作显示，不跳转设置页 */
-
-/* ===== 视图：笔记列表 ===== */
 function collectCategories(){
   var seen={};
   state.notes.forEach(function(n){

@@ -1,34 +1,14 @@
-/* 云上笔记 Cloud Notes · 逻辑脚本
-   v4.0 · 2026-09 · 暗色模式 + 安全头版本 */
 (function(){
 'use strict';
-
-/* ===== 常量 ===== */
 var LS_NOTES='cloud_notes.notes';
 var LS_MESSAGES='cloud_notes.messages';
 var LS_CONFIG='cloud_notes.config';
 var LS_KEYS='cloud_notes.keys';
-
-/* ============================================================
-   站长配置区（部署前必填）
-   ------------------------------------------------------------
-   把你的 Supabase 项目信息填到下面两行。
-   填好后，网站打开会自动连接，普通用户不需要也看不到
-   任何配置界面。
-   
-   获取方式：Supabase 控制台 → 你的项目 → 
-   Project Settings → API → 复制 Project URL 和 anon public key
-   
-   注意：anon key 本来就是设计为公开的，放前端是安全的，
-   真正的数据保护靠数据库的 RLS 行级安全策略（已配置）。
-   ============================================================ */
 var SITE_CONFIG={
-  supabaseUrl:'',       // 例如：'https://abcdefgh.supabase.co'
-  supabaseAnonKey:'',   // 例如：'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-  adminEmail:''          // 站长邮箱，登录后可管理公告（例如：'admin@example.com'）
+  supabaseUrl:'https://gbredjjrpdcazcrlvniz.supabase.co',     
+  supabaseAnonKey:'sb_publishable_QT0HsneR-K_OcN2fEiIUTQ_G-FODobx',  
+  adminEmail:'2982822193@qq.com'          
 };
-
-/* ===== 状态 ===== */
 var state={
   notes:[],
   messages:[],
@@ -48,11 +28,9 @@ var authListenerStarted=false;
 var authPromptPending=false;
 var authRecovery=false;
 
-/* ===== DOM 快捷引用 ===== */
 var $=function(id){return document.getElementById(id)};
 
 
-/* ===== 主题（暗色模式） ===== */
 function initTheme(){
   var saved=null;
   try{saved=localStorage.getItem('cloud_notes.theme');}catch(e){}
@@ -78,7 +56,6 @@ $('themeToggle').addEventListener('click',function(){
   applyTheme(next);
 });
 
-/* ===== 工具函数 ===== */
 function escapeHtml(s){
   return String(s)
     .replace(/&/g,'&amp;')
@@ -196,7 +173,6 @@ document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){closeLightbox();closeModal();}
 });
 
-/* ===== Markdown 渲染（安全：先转义再解析） ===== */
 function inlineMd(t){
   return t
     .replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+&quot;[^&]*&quot;)?\)/g,function(m,alt,url){
@@ -221,7 +197,7 @@ function renderMarkdown(src){
   var i=0;
   while(i<lines.length){
     var line=lines[i];
-    // 围栏代码块
+
     var fence=line.match(/^`{3,}(\w*)\s*$/);
     if(fence){
       i++;
@@ -231,7 +207,7 @@ function renderMarkdown(src){
       out.push('<pre><code>'+escapeHtml(buf.join('\n'))+'</code></pre>');
       continue;
     }
-    // 标题
+
     var h=line.match(/^(#{1,4})\s+(.*)$/);
     if(h){
       var lv=h[1].length;
@@ -239,13 +215,13 @@ function renderMarkdown(src){
       i++;
       continue;
     }
-    // 分隔线
+
     if(/^\s*(---|\*\*\*|___)\s*$/.test(line)){
       out.push('<hr>');
       i++;
       continue;
     }
-    // 引用
+
     if(/^>\s?/.test(line)){
       var q=[];
       while(i<lines.length&&/^>\s?/.test(lines[i])){
@@ -255,7 +231,6 @@ function renderMarkdown(src){
       out.push('<blockquote>'+q.join('<br>')+'</blockquote>');
       continue;
     }
-    // 无序列表
     if(/^\s*[-*+]\s+/.test(line)){
       var ul=[];
       while(i<lines.length&&/^\s*[-*+]\s+/.test(lines[i])){
@@ -265,7 +240,7 @@ function renderMarkdown(src){
       out.push('<ul>'+ul.join('')+'</ul>');
       continue;
     }
-    // 有序列表
+
     if(/^\s*\d+\.\s+/.test(line)){
       var ol=[];
       while(i<lines.length&&/^\s*\d+\.\s+/.test(lines[i])){
@@ -275,9 +250,9 @@ function renderMarkdown(src){
       out.push('<ol>'+ol.join('')+'</ol>');
       continue;
     }
-    // 空行
+
     if(!line.trim()){i++;continue;}
-    // 段落
+
     var para=[];
     while(i<lines.length&&lines[i].trim()&&
           !/^(#{1,4})\s/.test(lines[i])&&!/^`{3,}/.test(lines[i])&&
@@ -291,7 +266,6 @@ function renderMarkdown(src){
   return out.join('\n');
 }
 
-/* ===== 存储层：Supabase ===== */
 function loadKeys(){
   try{
     var k=JSON.parse(localStorage.getItem(LS_KEYS)||'null');
@@ -303,12 +277,12 @@ function saveKeys(url,key){
 }
 function clearKeys(){localStorage.removeItem(LS_KEYS);}
 function initClient(){
-  // 优先使用站长预配置（写死在代码里的 SITE_CONFIG）
+
   var k=null;
   if(SITE_CONFIG.supabaseUrl&&SITE_CONFIG.supabaseAnonKey){
     k={url:SITE_CONFIG.supabaseUrl,key:SITE_CONFIG.supabaseAnonKey};
   }else{
-    // 站长未配置时，回退到本地存储的手动配置（兼容旧版）
+
     k=loadKeys();
   }
   if(!k||!window.supabase||!window.supabase.createClient){sbClient=null;state.mode='local';return false;}
@@ -322,7 +296,7 @@ function initClient(){
   }
 }
 
-/* ===== 本地存储 ===== */
+
 function getLocalNotes(){
   try{return JSON.parse(localStorage.getItem(LS_NOTES)||'[]');}catch(e){return [];}
 }
@@ -332,7 +306,6 @@ function getLocalMessages(){
 }
 function setLocalMessages(arr){localStorage.setItem(LS_MESSAGES,JSON.stringify(arr));}
 
-/* ===== 笔记数据操作 ===== */
 function loadNotes(){
   if(state.mode==='cloud'&&sbClient){
     return sbClient.from('notes').select('*').order('updated_at',{ascending:false}).then(function(res){
@@ -391,7 +364,6 @@ function deleteNoteData(id){
   return Promise.resolve({data:null,error:null});
 }
 
-/* ===== 留言数据操作 ===== */
 function loadMessages(){
   if(state.mode==='cloud'&&sbClient){
     return sbClient.from('messages').select('*').order('created_at',{ascending:false}).limit(200).then(function(res){
@@ -417,13 +389,11 @@ function saveMessageData(msg){
   return Promise.resolve({data:saved,error:null});
 }
 
-/* ===== 站长判断 ===== */
 function isAdmin(){
   if(!SITE_CONFIG.adminEmail||!state.user) return false;
   return (state.user.email||'').toLowerCase()===SITE_CONFIG.adminEmail.toLowerCase();
 }
 
-/* ===== 公告数据操作 ===== */
 function loadAnnouncements(){
   if(state.mode==='cloud'&&sbClient){
     return sbClient.from('announcements').select('*').order('pinned',{ascending:false}).order('created_at',{ascending:false}).limit(20).then(function(res){
@@ -457,7 +427,6 @@ function deleteAnnouncement(id){
   return Promise.resolve({error:{message:'未连接云端'}});
 }
 
-/* ===== 侧栏公告渲染 ===== */
 function renderAnnouncements(){
   var box=$('announcementBox');
   if(!box) return;
@@ -531,8 +500,6 @@ function openAnnouncementEditor(a){
     return true;
   });
 }
-
-/* ===== 实时订阅 ===== */
 function watchRealtime(){
   if(!sbClient||rtChannel) return;
   rtChannel=sbClient.channel('cloud-notes-live')
@@ -576,8 +543,6 @@ function unwatchRealtime(){
     rtChannel=null;
   }
 }
-
-/* ===== 跨标签页同步（本地模式） ===== */
 window.addEventListener('storage',function(e){
   if(e.key===LS_NOTES&&state.mode==='local'){
     state.notes=getLocalNotes();
@@ -597,8 +562,6 @@ window.addEventListener('storage',function(e){
     }
   }
 });
-
-/* ===== 路由 ===== */
 function parseHash(){
   var h=location.hash.replace(/^#\/?/,'')||'home';
   var parts=h.split('/');
@@ -642,8 +605,6 @@ function renderRoute(){
   else if(route.name==='home'){renderHome();}
   window.scrollTo(0,0);
 }
-
-/* ===== 侧栏（移动端） ===== */
 function closeSidebar(){$('sidebar').classList.remove('open');$('scrim').classList.remove('show');}
 $('btnMenu').addEventListener('click',function(){
   $('sidebar').classList.add('open');
@@ -660,9 +621,7 @@ document.querySelectorAll('.static-link').forEach(function(b){
     navigate('#/'+b.getAttribute('data-route'));
   });
 });
-/* 站长预配置模式：底部状态区仅作显示，不跳转设置页 */
 
-/* ===== 视图：笔记列表 ===== */
 function collectCategories(){
   var seen={};
   state.notes.forEach(function(n){
@@ -748,7 +707,7 @@ $('searchInput').addEventListener('input',function(){
   if(currentRoute==='notes') renderNotes();
 });
 
-/* ===== 新建笔记 ===== */
+
 function createNewNote(){
   if(state.mode==='cloud'&&!state.user){
     authPromptPending=true;
@@ -774,7 +733,6 @@ function createNewNote(){
 }
 $('btnNewNote').addEventListener('click',createNewNote);
 
-/* ===== 视图：编辑器 ===== */
 var editorBackup=null;
 function openNote(id){
   editorBackup=null;
@@ -869,7 +827,6 @@ $('btnDeleteNote').addEventListener('click',function(){
   });
 });
 
-/* 编辑/预览切换 */
 $('tabEdit').addEventListener('click',function(){
   $('tabEdit').classList.add('active');$('tabPreview').classList.remove('active');
   $('noteContent').classList.remove('hidden');
@@ -949,7 +906,6 @@ function insertAtCursor(text){
   renderPreview();
 }
 
-/* ===== 视图：图片墙 ===== */
 function collectImages(){
   var seen={};
   var out=[];
@@ -987,7 +943,6 @@ function renderGallery(){
   });
 }
 
-/* ===== 视图：留言板 ===== */
 function renderMessages(){
   var list=$('msgList');
   if(!state.messages.length){
@@ -1018,7 +973,7 @@ $('msgForm').addEventListener('submit',function(e){
   });
 });
 
-/* ===== 视图：连接设置 ===== */
+
 var SQL_TEXT=
 '-- 笔记表（按用户隔离，支持分类与标签）\n'+
 'create table if not exists notes (\n'+
@@ -1191,7 +1146,6 @@ function fallbackCopy(text){
   document.body.removeChild(ta);
 }
 
-/* ===== 登录 / 注册（Supabase Auth） ===== */
 function getCurrentUser(){
   if(!sbClient) return Promise.resolve(null);
   return sbClient.auth.getSession().then(function(r){
@@ -1284,7 +1238,6 @@ function renderAuth(){
   }
 }
 
-/* ===== 静态页面内容 ===== */
 var STATIC_PAGES={
   about:{
     title:'关于本站',
@@ -1427,7 +1380,6 @@ function renderStaticPage(name){
   closeSidebar();
 }
 
-/* ===== 首页渲染 ===== */
 function renderHome(){
   var loginBtn=$('homeLoginBtn');
   if(loginBtn){
@@ -1446,7 +1398,6 @@ function renderHome(){
   closeSidebar();
 }
 
-/* 登录/注册/忘记密码/重置密码 面板切换 */
 var authTab='login';
 var loginMethod='password';
 var regMethod='email';
@@ -1558,7 +1509,7 @@ $('btnSendRegOtp').addEventListener('click',function(){
   sendPhoneOtp(phone,this);
 });
 
-/* 登录提交 */
+
 $('loginForm').addEventListener('submit',function(e){
   e.preventDefault();
   if(!sbClient){showToast('尚未连接云端','error');return;}
@@ -1584,7 +1535,7 @@ $('loginForm').addEventListener('submit',function(e){
   }
 });
 
-/* 注册提交 */
+
 $('registerForm').addEventListener('submit',function(e){
   e.preventDefault();
   if(!sbClient){showToast('尚未连接云端','error');return;}
@@ -1622,7 +1573,7 @@ $('registerForm').addEventListener('submit',function(e){
   }
 });
 
-/* ===== 连接状态 UI ===== */
+
 function updateConnUI(){
   var online=state.mode==='cloud';
   var dot=$('connDot');
@@ -1631,7 +1582,6 @@ function updateConnUI(){
   $('connSub').textContent=online?'实时同步中':'未连接云端';
 }
 
-/* ===== 初始化 ===== */
 function renderAll(){
   if(currentRoute==='notes') renderNotes();
   if(currentRoute==='gallery') renderGallery();

@@ -6,16 +6,19 @@
 <title>云上笔记 · 把想法安放在云端</title>
 <meta name="description" content="云上笔记 —— 一个简洁、实时的云端笔记工具。支持 Markdown、图片、留言板、邮箱/手机号注册登录，可连接 Supabase 实现多端实时同步。">
 <meta name="theme-color" content="#FAFAF8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://miaoda.feishu.cn; font-src https://miaoda.feishu.cn data:; img-src 'self' data: blob: https:; connect-src 'self' https: wss:; base-uri 'self'; form-action 'self'; object-src 'none'">
+<!-- ===== 安全头（浏览器本地即生效，不影响功能） ===== -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https: wss:; base-uri 'self'; form-action 'self'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="permissions-policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
-<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@600;900&display=swap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%233b82f6'/%3E%3Cpath d='M10 12h12M10 17h12M10 22h8' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js" integrity="sha384-EyR2P0dlmjnEGcm9xcjdAn0VedZpRHEwDLP9oSS6wYMvzHBHkUrvgonveazJ/sSx" crossorigin="anonymous"></script>
 <script src="script.js" defer></script>
 </head>
 <body>
 <div class="app">
+
+  <!-- ===== 侧栏 ===== -->
   <aside class="sidebar" id="sidebar">
     <div class="brand">
       <div class="brand-mark" aria-hidden="true">
@@ -44,12 +47,30 @@
         留言板
       </button>
     </nav>
+
+    <!-- ===== 公告栏 ===== -->
+    <div class="announcement-section">
+      <div class="announcement-header">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+        <span>站长公告</span>
+      </div>
+      <div class="announcement-box" id="announcementBox">
+        <div class="ann-empty">加载中…</div>
+      </div>
+    </div>
           <button class="theme-toggle" id="themeToggle" aria-label="切换深色/浅色模式">
         <svg id="themeIconMoon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
         <svg id="themeIconSun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>
         <span id="themeLabel">深色模式</span>
       </button>
       <div class="sidebar-foot">
+      <div class="static-nav">
+        <button class="static-link" data-route="about">关于本站</button>
+        <span class="static-sep">·</span>
+        <button class="static-link" data-route="help">使用帮助</button>
+        <span class="static-sep">·</span>
+        <button class="static-link" data-route="changelog">更新日志</button>
+      </div>
       <div class="conn-state" id="connState">
         <span class="conn-dot local" id="connDot"></span>
         <div>
@@ -61,6 +82,8 @@
     </div>
   </aside>
   <div class="scrim" id="scrim"></div>
+
+  <!-- ===== 主区 ===== -->
   <div class="main">
     <div class="mobile-bar">
       <button class="icon-btn" id="btnMenu" aria-label="打开菜单">
@@ -71,6 +94,93 @@
       </div>
       <span class="brand-name">云上笔记</span>
     </div>
+
+    <!-- ===== 视图：首页（公开） ===== -->
+    <section class="view" data-view="home">
+      <div class="home-wrap">
+        <!-- Hero -->
+        <div class="home-hero">
+          <div class="home-hero-brand">
+            <div class="home-hero-logo">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 1 0-.42-8.98A6 6 0 1 0 6 16.5"/><path d="M12 12v7"/><path d="M8.8 15.8 12 12l3.2 3.8"/></svg>
+            </div>
+            <span>云上笔记</span>
+          </div>
+          <h1 class="home-title">把想法，安放在云端</h1>
+          <p class="home-subtitle">一个简洁、轻量的云端笔记工具。支持 Markdown 编辑、实时同步、图片墙、留言板，你的笔记安全存储在云端，多端随时访问。</p>
+          <div class="home-cta">
+            <button class="btn-primary home-btn-primary" id="homeLoginBtn">立即开始</button>
+            <button class="btn-ghost home-btn-ghost" id="homeBrowseBtn">随便看看</button>
+          </div>
+          <p class="hero-note">已有账号？点击「立即开始」登录</p>
+        </div>
+
+        <!-- 功能展示 -->
+        <div class="home-features">
+          <h2 class="home-section-title">核心功能</h2>
+          <div class="home-feature-grid">
+            <div class="feature-card">
+              <div class="feature-icon" style="color:#3b82f6">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              </div>
+              <h3>Markdown 编辑</h3>
+              <p>支持标题、加粗、列表、引用、代码、图片链接等常用语法，编辑/预览一键切换，自动保存。</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon" style="color:#10b981">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+              </div>
+              <h3>实时同步</h3>
+              <p>连接 Supabase 后，笔记通过实时通道在多个设备间自动同步，手机电脑无缝衔接。</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon" style="color:#f59e0b">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="m21 15-4.5-4.5L7 20"/></svg>
+              </div>
+              <h3>图片墙</h3>
+              <p>自动从所有笔记正文中聚合图片，点击可放大查看，让你的灵感和素材一目了然。</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon" style="color:#8b5cf6">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <h3>留言板</h3>
+              <p>公开留言区域，任何人都可以留下建议或反馈，与站长和其他用户互动交流。</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon" style="color:#ef4444">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <h3>数据安全</h3>
+              <p>笔记按用户隔离，通过数据库行级安全策略保护，只有你本人能访问自己的笔记内容。</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon" style="color:#06b6d4">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+              </div>
+              <h3>暗色模式</h3>
+              <p>支持浅色/深色主题一键切换，选择后自动记住偏好，夜间写作也能护眼舒适。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 页脚 -->
+        <div class="home-footer">
+          <div class="home-footer-links">
+            <button class="footer-link" data-route="about">关于本站</button>
+            <span class="footer-sep">·</span>
+            <button class="footer-link" data-route="help">使用帮助</button>
+            <span class="footer-sep">·</span>
+            <button class="footer-link" data-route="changelog">更新日志</button>
+            <span class="footer-sep">·</span>
+            <button class="footer-link" data-route="messages">留言板</button>
+          </div>
+          <p class="home-copyright">© 2026 云上笔记 · 把想法安放在云端</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 视图：笔记列表 ===== -->
     <section class="view" data-view="notes">
       <div class="view-pad">
         <div class="page-head">
@@ -87,6 +197,8 @@
         <div class="note-grid" id="notesGrid"></div>
       </div>
     </section>
+
+    <!-- ===== 视图：编辑器 ===== -->
     <section class="view" data-view="note">
       <div class="view-pad" style="max-width:960px">
         <div class="editor-top">
@@ -130,6 +242,8 @@
         </div>
       </div>
     </section>
+
+    <!-- ===== 视图：图片墙 ===== -->
     <section class="view" data-view="gallery">
       <div class="view-pad">
         <div class="page-head">
@@ -141,6 +255,8 @@
         <div class="gallery-grid" id="galleryGrid"></div>
       </div>
     </section>
+
+    <!-- ===== 视图：留言板 ===== -->
     <section class="view" data-view="messages">
       <div class="view-pad" style="max-width:1080px">
         <div class="page-head">
@@ -175,6 +291,8 @@
         </div>
       </div>
     </section>
+
+    <!-- ===== 视图：连接设置 ===== -->
     <section class="view" data-view="settings">
       <div class="view-pad settings-wrap">
         <div class="page-head">
@@ -222,6 +340,8 @@
         </div>
       </div>
     </section>
+
+    <!-- ===== 视图：登录 / 注册 ===== -->
     <section class="view" data-view="auth">
       <div class="view-pad auth-wrap">
         <div class="auth-card">
@@ -236,6 +356,8 @@
             <button class="auth-tab active" id="authTabLogin">登录</button>
             <button class="auth-tab" id="authTabRegister">注册</button>
           </div>
+
+          <!-- 登录面板 -->
           <div id="loginPanel">
             <div class="auth-method">
               <button class="method-btn active" data-method="password" id="lmPassword">邮箱密码</button>
@@ -263,6 +385,8 @@
               </div>
             </form>
           </div>
+
+          <!-- 忘记密码面板 -->
           <div id="forgotPanel" style="display:none">
             <div class="auth-sub" style="margin-bottom:18px">输入注册邮箱，我们将发送一封密码重置邮件</div>
             <form id="forgotForm" novalidate>
@@ -274,6 +398,8 @@
               <button type="button" class="btn-ghost" id="btnBackLogin" style="width:100%;justify-content:center;height:40px;margin-top:10px">返回登录</button>
             </form>
           </div>
+
+          <!-- 重置密码面板 -->
           <div id="resetPanel" style="display:none">
             <div class="auth-sub" style="margin-bottom:18px">已通过邮件验证身份，请设置一个新密码</div>
             <form id="resetForm" novalidate>
@@ -286,6 +412,8 @@
               <button type="submit" class="btn-primary auth-submit" id="resetSubmitBtn">更新密码</button>
             </form>
           </div>
+
+          <!-- 注册面板 -->
           <div id="registerPanel" style="display:none">
             <div class="auth-method">
               <button class="method-btn active" data-method="email" id="rmEmail">邮箱注册</button>
@@ -318,9 +446,20 @@
         </div>
       </div>
     </section>
+
+    <!-- ===== 视图：静态页面（关于/帮助/更新日志） ===== -->
+    <section class="view" data-view="static">
+      <div class="view-pad" style="max-width:860px">
+        <div class="static-content" id="staticContent"></div>
+      </div>
+    </section>
   </div>
 </div>
+
+<!-- ===== Toast ===== -->
 <div class="toast-wrap" id="toastWrap"></div>
+
+<!-- ===== Modal（删除确认） ===== -->
 <div class="modal-scrim" id="modalScrim">
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <h2 class="modal-title" id="modalTitle">删除这篇笔记？</h2>
@@ -331,6 +470,8 @@
     </div>
   </div>
 </div>
+
+<!-- ===== Lightbox ===== -->
 <div class="lightbox" id="lightbox"><img id="lightboxImg" alt="图片预览"></div>
 </body>
 </html>

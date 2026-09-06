@@ -1,17 +1,38 @@
+/* 云上笔记 Cloud Notes · 逻辑脚本
+   v4.0 · 2026-09 · 暗色模式 + 安全头版本 */
 (function(){
 'use strict';
+
+/* ===== 常量 ===== */
 var LS_NOTES='cloud_notes.notes';
 var LS_MESSAGES='cloud_notes.messages';
 var LS_CONFIG='cloud_notes.config';
 var LS_KEYS='cloud_notes.keys';
+
+/* ============================================================
+   站长配置区（部署前必填）
+   ------------------------------------------------------------
+   把你的 Supabase 项目信息填到下面两行。
+   填好后，网站打开会自动连接，普通用户不需要也看不到
+   任何配置界面。
+   
+   获取方式：Supabase 控制台 → 你的项目 → 
+   Project Settings → API → 复制 Project URL 和 anon public key
+   
+   注意：anon key 本来就是设计为公开的，放前端是安全的，
+   真正的数据保护靠数据库的 RLS 行级安全策略（已配置）。
+   ============================================================ */
 var SITE_CONFIG={
-  supabaseUrl:'https://gbredjjrpdcazcrlvniz.supabase.co',      
-  supabaseAnonKey:'sb_publishable_QT0HsneR-K_OcN2fEiIUTQ_G-FODobx'    
+  supabaseUrl:'',       // 例如：'https://abcdefgh.supabase.co'
+  supabaseAnonKey:'',   // 例如：'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+  adminEmail:''          // 站长邮箱，登录后可管理公告（例如：'admin@example.com'）
 };
 
+/* ===== 状态 ===== */
 var state={
   notes:[],
   messages:[],
+  announcements:[],
   currentNoteId:null,
   mode:'local',
   user:null,
@@ -127,18 +148,36 @@ function showToast(msg,type){
 
 /* ===== Modal ===== */
 var modalCb=null;
+var modalCustom=false;
 function openModal(title,desc,okText,cb){
+  modalCustom=false;
   $('modalTitle').textContent=title;
   $('modalDesc').textContent=desc;
+  $('modalDesc').style.display='';
   $('btnModalOk').textContent=okText||'删除';
   modalCb=cb;
   $('modalScrim').classList.add('open');
 }
-function closeModal(){$('modalScrim').classList.remove('open');modalCb=null;}
+function openModalCustom(title,html,okText,cb){
+  modalCustom=true;
+  $('modalTitle').textContent=title;
+  $('modalDesc').innerHTML=html;
+  $('modalDesc').style.display='';
+  $('btnModalOk').textContent=okText||'确定';
+  modalCb=cb;
+  $('modalScrim').classList.add('open');
+}
+function closeModal(){$('modalScrim').classList.remove('open');modalCb=null;modalCustom=false;}
 $('btnModalCancel').addEventListener('click',closeModal);
 $('modalScrim').addEventListener('click',function(e){if(e.target===this)closeModal();});
 $('btnModalOk').addEventListener('click',function(){
   var cb=modalCb;
+  if(modalCustom&&cb){
+    var result=cb();
+    if(result===false) return;
+    closeModal();
+    return;
+  }
   closeModal();
   if(cb)cb();
 });
@@ -378,6 +417,121 @@ function saveMessageData(msg){
   return Promise.resolve({data:saved,error:null});
 }
 
+/* ===== 站长判断 ===== */
+function isAdmin(){
+  if(!SITE_CONFIG.adminEmail||!state.user) return false;
+  return (state.user.email||'').toLowerCase()===SITE_CONFIG.adminEmail.toLowerCase();
+}
+
+/* ===== 公告数据操作 ===== */
+function loadAnnouncements(){
+  if(state.mode==='cloud'&&sbClient){
+    return sbClient.from('announcements').select('*').order('pinned',{ascending:false}).order('created_at',{ascending:false}).limit(20).then(function(res){
+      if(res.error){state.announcements=[];}
+      else{state.announcements=(res.data||[]).slice();}
+      return res;
+    });
+  }
+  state.announcements=[];
+  return Promise.resolve({data:[],error:null});
+}
+function saveAnnouncement(data){
+  if(state.mode==='cloud'&&sbClient){
+    var payload={
+      title:data.title||'',
+      content:data.content||'',
+      pinned:!!data.pinned,
+      updated_at:new Date().toISOString()
+    };
+    if(data.id){
+      return sbClient.from('announcements').update(payload).eq('id',data.id).select().single();
+    }
+    return sbClient.from('announcements').insert(payload).select().single();
+  }
+  return Promise.resolve({data:null,error:{message:'未连接云端'}});
+}
+function deleteAnnouncement(id){
+  if(state.mode==='cloud'&&sbClient){
+    return sbClient.from('announcements').delete().eq('id',id);
+  }
+  return Promise.resolve({error:{message:'未连接云端'}});
+}
+
+/* ===== 侧栏公告渲染 ===== */
+function renderAnnouncements(){
+  var box=$('announcementBox');
+  if(!box) return;
+  var list=state.announcements;
+  if(!list.length){
+    box.innerHTML='<div class="ann-empty">暂无公告</div>';
+    if(isAdmin()){
+      box.innerHTML+='<button class="ann-add-btn" id="btnAddAnn">+ 发布公告</button>';
+      var b=$('btnAddAnn');
+      if(b) b.addEventListener('click',function(){openAnnouncementEditor();});
+    }
+    return;
+  }
+  var html='<div class="ann-list">';
+  list.forEach(function(a){
+    html+='<div class="ann-item" data-id="'+a.id+'">';
+    if(a.pinned) html+='<span class="ann-pin">置顶</span>';
+    html+='<div class="ann-title">'+escapeHtml(a.title||'无标题')+'</div>';
+    html+='<div class="ann-content">'+escapeHtml((a.content||'').slice(0,80))+((a.content||'').length>80?'…':'')+'</div>';
+    html+='<div class="ann-time">'+formatTime(a.created_at)+'</div>';
+    if(isAdmin()){
+      html+='<div class="ann-actions"><button class="ann-edit" data-id="'+a.id+'">编辑</button><button class="ann-del" data-id="'+a.id+'">删除</button></div>';
+    }
+    html+='</div>';
+  });
+  html+='</div>';
+  if(isAdmin()){
+    html+='<button class="ann-add-btn" id="btnAddAnn">+ 发布公告</button>';
+  }
+  box.innerHTML=html;
+  if(isAdmin()){
+    var addBtn=$('btnAddAnn');
+    if(addBtn) addBtn.addEventListener('click',function(){openAnnouncementEditor();});
+    Array.prototype.forEach.call(box.querySelectorAll('.ann-edit'),function(btn){
+      btn.addEventListener('click',function(){
+        var id=btn.getAttribute('data-id');
+        var a=state.announcements.find(function(x){return x.id===id;});
+        if(a) openAnnouncementEditor(a);
+      });
+    });
+    Array.prototype.forEach.call(box.querySelectorAll('.ann-del'),function(btn){
+      btn.addEventListener('click',function(){
+        var id=btn.getAttribute('data-id');
+        openModal('删除公告？','删除后无法恢复。','删除',function(){
+          deleteAnnouncement(id).then(function(){
+            loadAnnouncements().then(renderAnnouncements);
+            showToast('公告已删除','success');
+          });
+        });
+      });
+    });
+  }
+}
+function openAnnouncementEditor(a){
+  var a=a||{title:'',content:'',pinned:false};
+  var html='<div class="ann-editor">';
+  html+='<label>标题</label><input type="text" id="annEditTitle" value="'+escapeHtml(a.title||'')+'" maxlength="100">';
+  html+='<label>内容</label><textarea id="annEditContent" rows="6">'+escapeHtml(a.content||'')+'</textarea>';
+  html+='<label class="ann-pin-label"><input type="checkbox" id="annEditPin" '+(a.pinned?'checked':'')+'> 置顶显示</label>';
+  html+='</div>';
+  openModalCustom(a.id?'编辑公告':'发布公告',html,a.id?'保存':'发布',function(){
+    var title=($('annEditTitle').value||'').trim();
+    var content=($('annEditContent').value||'').trim();
+    if(!title){showToast('请输入标题','error');return false;}
+    var payload={id:a.id||null,title:title,content:content,pinned:$('annEditPin').checked};
+    saveAnnouncement(payload).then(function(res){
+      if(res.error){showToast('保存失败：'+res.error.message,'error');return;}
+      loadAnnouncements().then(renderAnnouncements);
+      showToast('公告已发布','success');
+    });
+    return true;
+  });
+}
+
 /* ===== 实时订阅 ===== */
 function watchRealtime(){
   if(!sbClient||rtChannel) return;
@@ -446,10 +600,10 @@ window.addEventListener('storage',function(e){
 
 /* ===== 路由 ===== */
 function parseHash(){
-  var h=location.hash.replace(/^#\/?/,'')||'notes';
+  var h=location.hash.replace(/^#\/?/,'')||'home';
   var parts=h.split('/');
   if(parts[0]==='note'&&parts[1]) return {name:'note',id:parts[1]};
-  if(['notes','gallery','messages','settings','auth'].indexOf(parts[0])>=0) return {name:parts[0]};
+  if(['notes','gallery','messages','settings','auth','about','help','changelog','home'].indexOf(parts[0])>=0) return {name:parts[0]};
   return {name:'notes'};
 }
 function navigate(hash){location.hash=hash;}
@@ -482,6 +636,10 @@ function renderRoute(){
   else if(route.name==='messages'){renderMessages();}
   else if(route.name==='settings'){renderSettings();}
   else if(route.name==='auth'){renderAuth();}
+  else if(route.name==='about'){renderStaticPage('about');}
+  else if(route.name==='help'){renderStaticPage('help');}
+  else if(route.name==='changelog'){renderStaticPage('changelog');}
+  else if(route.name==='home'){renderHome();}
   window.scrollTo(0,0);
 }
 
@@ -497,6 +655,14 @@ document.querySelectorAll('.nav-item').forEach(function(b){
     navigate('#/'+b.getAttribute('data-route'));
   });
 });
+document.querySelectorAll('.static-link').forEach(function(b){
+  b.addEventListener('click',function(){
+    navigate('#/'+b.getAttribute('data-route'));
+  });
+});
+/* 站长预配置模式：底部状态区仅作显示，不跳转设置页 */
+
+/* ===== 视图：笔记列表 ===== */
 function collectCategories(){
   var seen={};
   state.notes.forEach(function(n){
@@ -1065,12 +1231,13 @@ function listenAuth(){
       state.messages=[];
       if(currentRoute!=='auth') navigate('#/auth');
     }
-    if(!prevUser&&state.user&&(event==='SIGNED_IN'||event==='INITIAL_SESSION')&&(currentRoute==='auth'||authPromptPending)){
+    if(!prevUser&&state.user&&(event==='SIGNED_IN'||event==='INITIAL_SESSION')&&(currentRoute==='auth'||currentRoute==='home'||authPromptPending)){
       authPromptPending=false;
       showToast('登录成功，欢迎使用云上笔记','success');
       navigate('#/notes');
     }
     updateUserUI();
+    renderAnnouncements();
   });
 }
 function updateUserUI(){
@@ -1115,6 +1282,168 @@ function renderAuth(){
     authPromptPending=false;
     showToast('请先登录后使用云笔记','info');
   }
+}
+
+/* ===== 静态页面内容 ===== */
+var STATIC_PAGES={
+  about:{
+    title:'关于本站',
+    icon:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>',
+    html:'<div class="static-card">'+
+      '<h2>云上笔记是什么</h2>'+
+      '<p>云上笔记是一个简洁、轻量的云端笔记工具，支持 Markdown 编辑、图片上传、留言板、多端实时同步。你的笔记安全地存储在云端，只能由你本人访问。</p>'+
+      '<h2>主要功能</h2>'+
+      '<ul>'+
+      '<li><strong>Markdown 编辑器</strong>：支持标题、加粗、列表、引用、代码、图片链接等常用语法，编辑/预览一键切换</li>'+
+      '<li><strong>分类与标签</strong>：每篇笔记可设置分类和最多 10 个标签，列表页支持按分类筛选和关键词搜索</li>'+
+      '<li><strong>图片墙</strong>：自动从所有笔记正文中聚合图片，点击可放大查看</li>'+
+      '<li><strong>留言板</strong>：公开区域，任何人都可以留下建议或反馈</li>'+
+      '<li><strong>多端同步</strong>：连接 Supabase 后，笔记通过实时通道在多个设备间自动同步</li>'+
+      '<li><strong>暗色模式</strong>：支持浅色/深色主题切换，选择后自动记住</li>'+
+      '</ul>'+
+      '<h2>技术栈</h2>'+
+      '<p>前端采用原生 HTML / CSS / JavaScript 构建，无框架依赖，加载速度快。数据存储与用户认证由 Supabase 提供，部署于 Vercel。</p>'+
+      '<h2>隐私与安全</h2>'+
+      '<p>笔记数据按用户隔离，通过 Supabase 行级安全策略（RLS）保护——你只能看到和修改自己的笔记。密码采用行业标准加密存储，我们不会也无法查看你的笔记内容。</p>'+
+      '</div>'
+  },
+  help:{
+    title:'使用帮助',
+    icon:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>',
+    html:'<div class="static-card">'+
+      '<h2>快速上手</h2>'+
+      '<h3>1. 注册账号</h3>'+
+      '<p>点击侧栏底部的「登录 / 注册」按钮，支持两种方式：</p>'+
+      '<ul>'+
+      '<li><strong>邮箱注册</strong>：输入邮箱和密码，系统会发送确认邮件，点击邮件中的链接完成验证</li>'+
+      '<li><strong>手机号注册</strong>：输入手机号，获取短信验证码，输入验证码后自动注册并登录</li>'+
+      '</ul>'+
+      '<h3>2. 创建笔记</h3>'+
+      '<p>点击侧栏顶部的「新建笔记」按钮，进入编辑器。输入标题和内容，系统会在你停止输入 0.8 秒后自动保存，右上角会显示保存状态。</p>'+
+      '<h3>3. Markdown 语法</h3>'+
+      '<p>编辑器支持常用 Markdown 语法：</p>'+
+      '<ul>'+
+      '<li><code># 标题</code> — 一级标题</li>'+
+      '<li><code>**加粗**</code> — 加粗文字</li>'+
+      '<li><code>- 列表项</code> — 无序列表</li>'+
+      '<li><code>&gt; 引用</code> — 引用块</li>'+
+      '<li><code>![描述](图片链接)</code> — 插入图片</li>'+
+      '<li><code>[链接文字](链接地址)</code> — 插入链接</li>'+
+      '</ul>'+
+      '<p>点击编辑器上方的「预览」按钮可实时查看渲染效果。</p>'+
+      '<h3>4. 上传图片</h3>'+
+      '<p>在编辑器中点击「插入图片」，可以选择：</p>'+
+      '<ul>'+
+      '<li><strong>本地上传</strong>：选择本地图片（限 4MB），上传后自动生成链接并插入到光标位置</li>'+
+      '<li><strong>粘贴链接</strong>：直接粘贴网络图片 URL</li>'+
+      '</ul>'+
+      '<h3>5. 分类与标签</h3>'+
+      '<p>在编辑器标题下方可以设置分类（如工作、学习、生活）和标签（逗号分隔，最多 10 个）。在笔记列表页顶部可以按分类筛选，右上角搜索框支持按标题和内容搜索。</p>'+
+      '<h3>6. 忘记密码</h3>'+
+      '<p>在登录页点击「忘记密码？」，输入注册邮箱，系统会发送重置邮件，点击链接后设置新密码即可。</p>'+
+      '<h2>常见问题</h2>'+
+      '<h3>Q: 笔记会丢失吗？</h3>'+
+      '<p>A: 登录后笔记存储在云端数据库，不会因清除浏览器缓存或更换设备而丢失。未登录时笔记仅保存在当前浏览器，清除缓存会丢失。</p>'+
+      '<h3>Q: 别人能看到我的笔记吗？</h3>'+
+      '<p>A: 不能。笔记数据按用户隔离，通过数据库行级安全策略保护，只有你本人登录后才能访问自己的笔记。</p>'+
+      '<h3>Q: 支持手机访问吗？</h3>'+
+      '<p>A: 支持。页面做了响应式适配，在手机浏览器上可以正常使用，侧栏可通过左上角菜单按钮展开。</p>'+
+      '</div>'
+  },
+  changelog:{
+    title:'更新日志',
+    icon:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>',
+    html:'<div class="static-card">'+
+      '<div class="changelog-item">'+
+      '<div class="changelog-version">v1.4.0</div>'+
+      '<div class="changelog-date">2026-09-06</div>'+
+      '<ul>'+
+      '<li>新增侧栏公告栏，站长可发布/编辑/删除公告</li>'+
+      '<li>新增「关于本站」「使用帮助」「更新日志」三个静态页面</li>'+
+      '<li>优化静态页面导航，侧栏底部增加快捷入口</li>'+
+      '</ul>'+
+      '</div>'+
+      '<div class="changelog-item">'+
+      '<div class="changelog-version">v1.3.0</div>'+
+      '<div class="changelog-date">2026-09-05</div>'+
+      '<ul>'+
+      '<li>修复云端模式下笔记和留言加载后不显示的问题</li>'+
+      '<li>修复登录/注册页面路由无法跳转的问题</li>'+
+      '<li>新增 Supabase Storage 图片上传的 RLS 策略支持</li>'+
+      '<li>移除外部字体依赖，改用系统字体，提升加载速度</li>'+
+      '<li>新增网站 favicon</li>'+
+      '</ul>'+
+      '</div>'+
+      '<div class="changelog-item">'+
+      '<div class="changelog-version">v1.2.0</div>'+
+      '<div class="changelog-date">2026-09-05</div>'+
+      '<ul>'+
+      '<li>新增暗色模式，支持浅色/深色主题切换并记住偏好</li>'+
+      '<li>代码拆分为独立的 HTML / CSS / JS 文件</li>'+
+      '<li>新增 Content-Security-Policy 等安全头保护</li>'+
+      '<li>新增 Vercel 部署安全头配置</li>'+
+      '</ul>'+
+      '</div>'+
+      '<div class="changelog-item">'+
+      '<div class="changelog-version">v1.1.0</div>'+
+      '<div class="changelog-date">2026-09-05</div>'+
+      '<ul>'+
+      '<li>新增用户注册与登录功能，支持邮箱密码和手机验证码两种方式</li>'+
+      '<li>新增忘记密码与密码重置流程</li>'+
+      '<li>笔记数据按用户隔离，通过 RLS 行级安全策略保护</li>'+
+      '<li>新增笔记分类与标签功能</li>'+
+      '<li>新增笔记列表分类筛选</li>'+
+      '</ul>'+
+      '</div>'+
+      '<div class="changelog-item">'+
+      '<div class="changelog-version">v1.0.0</div>'+
+      '<div class="changelog-date">2026-09-05</div>'+
+      '<ul>'+
+      '<li>云上笔记首次发布</li>'+
+      '<li>支持 Markdown 编辑器，编辑/预览切换</li>'+
+      '<li>支持笔记自动保存与多端实时同步</li>'+
+      '<li>支持图片墙，自动聚合笔记中的图片</li>'+
+      '<li>支持留言板，公开留言与反馈</li>'+
+      '<li>支持 Supabase 云端连接与本地模式兜底</li>'+
+      '<li>响应式设计，适配桌面与移动端</li>'+
+      '</ul>'+
+      '</div>'+
+      '</div>'
+  }
+};
+function renderStaticPage(name){
+  var page=STATIC_PAGES[name];
+  if(!page) return;
+  var el=document.querySelector('.view[data-view="static"]');
+  if(!el) return;
+  el.classList.add('active');
+  var content=el.querySelector('.static-content');
+  if(content){
+    content.innerHTML='<div class="static-head">'+page.icon+'<h1 class="static-title">'+page.title+'</h1></div>'+page.html;
+  }
+  document.querySelectorAll('.nav-item').forEach(function(b){
+    b.classList.toggle('active',b.getAttribute('data-route')===name);
+  });
+  closeSidebar();
+}
+
+/* ===== 首页渲染 ===== */
+function renderHome(){
+  var loginBtn=$('homeLoginBtn');
+  if(loginBtn){
+    loginBtn.onclick=function(){navigate('#/auth');};
+  }
+  var browseBtn=$('homeBrowseBtn');
+  if(browseBtn){
+    browseBtn.onclick=function(){navigate('#/notes');};
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.footer-link'),function(link){
+    link.onclick=function(){
+      var route=link.getAttribute('data-route');
+      if(route) navigate('#/'+route);
+    };
+  });
+  closeSidebar();
 }
 
 /* 登录/注册/忘记密码/重置密码 面板切换 */
@@ -1317,7 +1646,13 @@ function init(){
     getCurrentUser().then(function(u){
       state.user=u;
       updateUserUI();
-      renderRoute();
+      // 已登录用户打开首页时自动跳转到笔记列表
+      var route=parseHash();
+      if(u&&route.name==='home'){
+        navigate('#/notes');
+      }else{
+        renderRoute();
+      }
     });
   }else{
     updateUserUI();
@@ -1328,6 +1663,9 @@ function init(){
   });
   loadMessages().then(function(){
     if(currentRoute==='messages') renderMessages();
+  });
+  loadAnnouncements().then(function(){
+    renderAnnouncements();
   });
   updateConnUI();
 }

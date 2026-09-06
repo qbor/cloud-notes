@@ -18,7 +18,6 @@
 <body>
 <div class="app">
 
-  <!-- ===== 侧栏 ===== -->
   <aside class="sidebar" id="sidebar">
     <div class="brand">
       <div class="brand-mark" aria-hidden="true">
@@ -48,7 +47,7 @@
       </button>
     </nav>
 
-    <!-- ===== 公告栏 ===== -->
+
     <div class="announcement-section">
       <div class="announcement-header">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
@@ -83,7 +82,7 @@
   </aside>
   <div class="scrim" id="scrim"></div>
 
-  <!-- ===== 主区 ===== -->
+
   <div class="main">
     <div class="mobile-bar">
       <button class="icon-btn" id="btnMenu" aria-label="打开菜单">
@@ -95,7 +94,6 @@
       <span class="brand-name">云上笔记</span>
     </div>
 
-    <!-- ===== 视图：首页（公开） ===== -->
     <section class="view" data-view="home">
       <div class="home-wrap">
         <!-- Hero -->
@@ -115,7 +113,7 @@
           <p class="hero-note">已有账号？点击「立即开始」登录</p>
         </div>
 
-        <!-- 功能展示 -->
+
         <div class="home-features">
           <h2 class="home-section-title">核心功能</h2>
           <div class="home-feature-grid">
@@ -180,7 +178,7 @@
       </div>
     </section>
 
-    <!-- ===== 视图：笔记列表 ===== -->
+
     <section class="view" data-view="notes">
       <div class="view-pad">
         <div class="page-head">
@@ -198,7 +196,7 @@
       </div>
     </section>
 
-    <!-- ===== 视图：编辑器 ===== -->
+
     <section class="view" data-view="note">
       <div class="view-pad" style="max-width:960px">
         <div class="editor-top">
@@ -243,7 +241,7 @@
       </div>
     </section>
 
-    <!-- ===== 视图：图片墙 ===== -->
+
     <section class="view" data-view="gallery">
       <div class="view-pad">
         <div class="page-head">
@@ -256,7 +254,7 @@
       </div>
     </section>
 
-    <!-- ===== 视图：留言板 ===== -->
+
     <section class="view" data-view="messages">
       <div class="view-pad" style="max-width:1080px">
         <div class="page-head">
@@ -292,7 +290,6 @@
       </div>
     </section>
 
-    <!-- ===== 视图：连接设置 ===== -->
     <section class="view" data-view="settings">
       <div class="view-pad settings-wrap">
         <div class="page-head">
@@ -341,7 +338,6 @@
       </div>
     </section>
 
-    <!-- ===== 视图：登录 / 注册 ===== -->
     <section class="view" data-view="auth">
       <div class="view-pad auth-wrap">
         <div class="auth-card">
@@ -357,7 +353,7 @@
             <button class="auth-tab" id="authTabRegister">注册</button>
           </div>
 
-          <!-- 登录面板 -->
+
           <div id="loginPanel">
             <div class="auth-method">
               <button class="method-btn active" data-method="password" id="lmPassword">邮箱密码</button>
@@ -386,7 +382,7 @@
             </form>
           </div>
 
-          <!-- 忘记密码面板 -->
+
           <div id="forgotPanel" style="display:none">
             <div class="auth-sub" style="margin-bottom:18px">输入注册邮箱，我们将发送一封密码重置邮件</div>
             <form id="forgotForm" novalidate>
@@ -399,7 +395,7 @@
             </form>
           </div>
 
-          <!-- 重置密码面板 -->
+
           <div id="resetPanel" style="display:none">
             <div class="auth-sub" style="margin-bottom:18px">已通过邮件验证身份，请设置一个新密码</div>
             <form id="resetForm" novalidate>
@@ -413,7 +409,7 @@
             </form>
           </div>
 
-          <!-- 注册面板 -->
+
           <div id="registerPanel" style="display:none">
             <div class="auth-method">
               <button class="method-btn active" data-method="email" id="rmEmail">邮箱注册</button>
@@ -447,7 +443,7 @@
       </div>
     </section>
 
-    <!-- ===== 视图：静态页面（关于/帮助/更新日志） ===== -->
+
     <section class="view" data-view="static">
       <div class="view-pad" style="max-width:860px">
         <div class="static-content" id="staticContent"></div>
@@ -456,10 +452,9 @@
   </div>
 </div>
 
-<!-- ===== Toast ===== -->
+
 <div class="toast-wrap" id="toastWrap"></div>
 
-<!-- ===== Modal（删除确认） ===== -->
 <div class="modal-scrim" id="modalScrim">
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <h2 class="modal-title" id="modalTitle">删除这篇笔记？</h2>
@@ -471,7 +466,7 @@
   </div>
 </div>
 
-<!-- ===== Lightbox ===== -->
+
 <div class="lightbox" id="lightbox"><img id="lightboxImg" alt="图片预览"></div>
 </body>
 </html>
